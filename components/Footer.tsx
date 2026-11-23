@@ -38,14 +38,22 @@ export function Footer() {
     e.preventDefault();
     if (!email) return;
     setState('loading');
-    const { error } = await supabase
-      .from('newsletter_subscriptions')
-      .insert({ email: email.trim().toLowerCase() });
-    if (error) {
-      setState('error');
-    } else {
+    try {
+      const data = new TextEncoder().encode(localStorage.getItem('rooted_client_id') ?? email);
+      const digest = await crypto.subtle.digest('SHA-256', data);
+      const ipHash = Array.from(new Uint8Array(digest))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      const { error } = await supabase.rpc('subscribe_newsletter', {
+        p_email: email.trim().toLowerCase(),
+        p_ip_hash: ipHash,
+      });
+      if (error) throw error;
       setState('done');
       setEmail('');
+    } catch (cause) {
+      console.error('newsletter signup failed', cause);
+      setState('error');
     }
   }
 

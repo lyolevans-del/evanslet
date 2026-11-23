@@ -12,6 +12,7 @@ export type Field =
       required?: boolean;
       placeholder?: string;
       half?: boolean;
+      maxLength?: number;
     }
   | {
       name: string;
@@ -29,6 +30,7 @@ export type Field =
       required?: boolean;
       placeholder?: string;
       half?: boolean;
+      maxLength?: number;
     };
 
 type SubmitFormProps = {
@@ -44,6 +46,97 @@ type SubmitFormProps = {
 const inputClass =
   'w-full rounded-xl border border-input bg-bark px-4 py-3 text-sm text-cream placeholder:text-cream/35 focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold';
 
+/** Stable per-browser identifier, hashed so no identifying value is sent raw. */
+async function getClientHash(): Promise<string> {
+  const KEY = 'rooted_client_id';
+  let clientId = localStorage.getItem(KEY);
+  if (!clientId) {
+    clientId = crypto.randomUUID();
+    localStorage.setItem(KEY, clientId);
+  }
+  const data = new TextEncoder().encode(clientId);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+type RpcConfig = { fn: string; args: Record<string, string | null | boolean> };
+
+function buildRpc(
+  table: string,
+  values: Record<string, string>,
+  hidden: Record<string, string> | undefined,
+  consent: boolean,
+  ipHash: string
+): RpcConfig {
+  const merged = { ...values, ...hidden };
+  const get = (key: string) => (merged[key] ?? '').trim();
+  const getOr = (key: string) => get(key) || null;
+  const ip = { p_ip_hash: ipHash };
+
+  switch (table) {
+    case 'talent_submissions':
+      return {
+        fn: 'submit_talent_submission',
+        args: {
+          p_full_name: get('full_name'),
+          p_email: get('email'),
+          p_phone: getOr('phone'),
+          p_country: get('country'),
+          p_discipline: get('discipline'),
+          p_portfolio_url: getOr('portfolio_url'),
+          p_message: get('message'),
+          p_consent: consent,
+          ...ip,
+        },
+      };
+    case 'nominations':
+      return {
+        fn: 'submit_nomination',
+        args: {
+          p_nominee_name: get('nominee_name'),
+          p_nominee_discipline: get('nominee_discipline'),
+          p_nominator_name: get('nominator_name'),
+          p_nominator_email: get('nominator_email'),
+          p_reason: get('reason'),
+          p_consent: consent,
+          ...ip,
+        },
+      };
+    case 'partnership_enquiries':
+      return {
+        fn: 'submit_partnership_enquiry',
+        args: {
+          p_organisation: get('organisation'),
+          p_contact_name: get('contact_name'),
+          p_email: get('email'),
+          p_country: get('country'),
+          p_interest: get('interest'),
+          p_message: get('message'),
+          p_consent: consent,
+          ...ip,
+        },
+      };
+    case 'contact_messages':
+      return {
+        fn: 'submit_contact_message',
+        args: {
+          p_full_name: get('full_name'),
+          p_email: get('email'),
+          p_organisation: getOr('organisation'),
+          p_country: get('country'),
+          p_enquiry_type: get('enquiry_type'),
+          p_message: get('message'),
+          p_consent: consent,
+          ...ip,
+        },
+      };
+    default:
+      throw new Error('Unknown form');
+  }
+}
+
 export function SubmitForm({
   table,
   fields,
@@ -58,7 +151,6 @@ export function SubmitForm({
   const [values, setValues] = useState(initial);
   const [consent, setConsent] = useState(false);
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
 
   function set(name: string, value: string) {
     setValues((v) => ({ ...v, [name]: value }));
@@ -67,18 +159,15 @@ export function SubmitForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setState('loading');
-    setErrorMsg('');
-    const payload: Record<string, unknown> = { ...hidden };
-    fields.forEach((f) => {
-      payload[f.name] = values[f.name].trim();
-    });
-    payload.consent = consent;
-    const { error } = await supabase.from(table).insert(payload);
-    if (error) {
-      setErrorMsg(error.message);
-      setState('error');
-    } else {
+    try {
+      const ipHash = await getClientHash();
+      const { fn, args } = buildRpc(table, values, hidden, consent, ipHash);
+      const { error } = await supabase.rpc(fn, args);
+      if (error) throw error;
       setState('done');
+    } catch (cause) {
+      console.error('form submission failed', cause);
+      setState('error');
     }
   }
 
@@ -116,6 +205,7 @@ export function SubmitForm({
                 id={`${table}-${field.name}`}
                 rows={5}
                 required={field.required}
+                maxLength={field.maxLength ?? 5000}
                 placeholder={field.placeholder}
                 value={values[field.name]}
                 onChange={(e) => set(field.name, e.target.value)}
@@ -141,6 +231,7 @@ export function SubmitForm({
                 id={`${table}-${field.name}`}
                 type={field.type}
                 required={field.required}
+                maxLength={field.maxLength ?? 200}
                 placeholder={field.placeholder}
                 value={values[field.name]}
                 onChange={(e) => set(field.name, e.target.value)}
@@ -169,7 +260,6 @@ export function SubmitForm({
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           Something went wrong sending your message. Please check your
           details and try again.
-          {errorMsg ? null : null}
         </div>
       )}
 
