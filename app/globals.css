@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 28 30% 7%;
+    --foreground: 38 40% 92%;
+    --card: 28 24% 10%;
+    --card-foreground: 38 40% 92%;
+    --popover: 28 24% 10%;
+    --popover-foreground: 38 40% 92%;
+    --primary: 40 52% 52%;
+    --primary-foreground: 28 30% 8%;
+    --secondary: 30 22% 16%;
+    --secondary-foreground: 38 40% 92%;
+    --muted: 30 20% 14%;
+    --muted-foreground: 36 16% 68%;
+    --accent: 40 52% 52%;
+    --accent-foreground: 28 30% 8%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 38 40% 92%;
+    --border: 32 16% 20%;
+    --input: 32 16% 22%;
+    --ring: 40 52% 52%;
+    --radius: 0.75rem;
+
+    --cream: 38 45% 93%;
+    --cream-soft: 36 38% 87%;
+    --gold: 40 52% 52%;
+    --gold-soft: 42 48% 64%;
+    --espresso: 26 38% 9%;
+    --bark: 27 30% 13%;
+    --clay: 22 38% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition:
+      opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 36s linear infinite;
+}
+
+@keyframes roots-sway {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-roots {
+  animation: roots-sway 7s ease-in-out infinite;
+}
