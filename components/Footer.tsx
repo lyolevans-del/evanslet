@@ -9,12 +9,14 @@ const exploreLinks = [
   { href: '/about', label: 'About Us' },
   { href: '/what-we-do', label: 'What We Do' },
   { href: '/discover-talent', label: 'Discover Talent' },
+  { href: '/showcase', label: 'ROOTED Showcase' },
   { href: '/stories', label: 'ROOTED Stories' },
   { href: '/live', label: 'ROOTED Live' },
   { href: '/partnerships', label: 'Partnerships' },
 ];
 
 const getInvolvedLinks = [
+  { href: '/showcase#upload', label: 'Upload Your Creativity' },
   { href: '/discover-talent#submit', label: 'Submit Your Talent' },
   { href: '/discover-talent#nominate', label: 'Nominate Someone' },
   { href: '/stories#share', label: 'Share Your Story' },

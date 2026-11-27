@@ -10,6 +10,7 @@ const links = [
   { href: '/about', label: 'About Us' },
   { href: '/what-we-do', label: 'What We Do' },
   { href: '/discover-talent', label: 'Discover Talent' },
+  { href: '/showcase', label: 'Showcase' },
   { href: '/stories', label: 'ROOTED Stories' },
   { href: '/live', label: 'ROOTED Live' },
   { href: '/partnerships', label: 'Partnerships' },

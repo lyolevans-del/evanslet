@@ -18,9 +18,12 @@ import {
   Briefcase,
   Scissors,
   HandHeart,
+  Upload,
 } from 'lucide-react';
 import { Reveal } from '@/components/Reveal';
 import { RootsGraphic } from '@/components/RootsGraphic';
+import { getShowcaseItems } from '@/lib/queries';
+import { categoryIcon, gradientFor } from '@/lib/showcase-ui';
 
 const divisions = [
   {
@@ -86,7 +89,8 @@ const disciplines = [
   { icon: HandHeart, label: 'Mentors & Professionals' },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const showcaseItems = (await getShowcaseItems()).slice(0, 4);
   return (
     <main>
       {/* ============ HERO ============ */}
@@ -403,6 +407,81 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ============ ROOTED SHOWCASE TEASER ============ */}
+      {showcaseItems.length > 0 && (
+        <section className="py-24 sm:py-32">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <Reveal>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gold">
+                    ROOTED Showcase
+                  </p>
+                  <h2 className="mt-4 max-w-2xl font-display text-4xl font-semibold leading-tight tracking-tight text-cream text-balance sm:text-5xl">
+                    Your Talent. Your Projects. Your Platform.
+                  </h2>
+                </div>
+                <Link
+                  href="/showcase#upload"
+                  className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-espresso transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-soft"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Your Creativity
+                </Link>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {showcaseItems.map((item, i) => {
+                const Icon = categoryIcon[item.category];
+                return (
+                  <Reveal key={item.id} delay={i * 80}>
+                    <Link
+                      href="/showcase#gallery"
+                      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/50 hover:shadow-xl hover:shadow-gold/5"
+                    >
+                      <div
+                        className={`relative aspect-[4/3] overflow-hidden bg-gradient-to-br ${gradientFor(
+                          item.cover_color
+                        )}`}
+                      >
+                        <div className="absolute inset-0 grain opacity-40" />
+                        <div className="absolute left-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl bg-espresso/70 backdrop-blur-sm">
+                          <Icon className="h-4.5 w-4.5 text-gold" />
+                        </div>
+                      </div>
+                      <div className="flex flex-1 flex-col p-5">
+                        <h3 className="font-display text-base font-semibold leading-snug text-cream transition-colors group-hover:text-gold-soft">
+                          {item.title}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-cream/55">
+                          {item.description}
+                        </p>
+                        <p className="mt-auto pt-4 text-xs font-medium text-cream/50">
+                          {item.creator_name} · {item.country}
+                        </p>
+                      </div>
+                    </Link>
+                  </Reveal>
+                );
+              })}
+            </div>
+
+            <Reveal delay={200}>
+              <div className="mt-10 text-center">
+                <Link
+                  href="/showcase"
+                  className="group inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gold transition-colors hover:text-gold-soft"
+                >
+                  Explore the full gallery
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      )}
 
       {/* ============ JOIN THE MOVEMENT ============ */}
       <section className="py-24 sm:py-32">
